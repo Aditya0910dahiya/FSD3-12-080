@@ -1,1 +1,0 @@
-setIntervel(f1,1000)
