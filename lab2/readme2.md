@@ -11,3 +11,4 @@ FS Module directyl communicate with operating system rather than browser , the c
  5. Steram -
  - readstream 
  all funciton are promise so it must be called with await
+ 
