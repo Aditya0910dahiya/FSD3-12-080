@@ -1,64 +1,125 @@
-import readline from "readline/promises"; 
-import { stdin,stdout} from "process";
-import { readFile, writeFile } from "fs/promises";  
+import readline from "readline/promises";
+import { stdin, stdout } from "process";
+import { readFile, writeFile } from "fs/promises";
+import { get } from "http";
+import { count } from "console";
 
-const FILE = 'product.json';
-const getCart = async()=>{
-    const data = await readFile(FILE,"utf-8");
-    return JSON.parse(data);
+const FILE = "product.json";
 
+const getCart = async () => {
+  const data = await readFile(FILE, "utf-8");
+  return JSON.parse(data);
 };
-const saveCart = async (myCart)=>{
-    await writeFile(FILE,JSON.stringify(myCart,null,2));
+const saveCart = async (myCart) => {
+  await writeFile(FILE, JSON.stringify(myCart, null, 2));
 };
-const addToCart = async (product)=>{
-    const myCart = await getCart();
-    const isFound = myCart.findIndex((p)=>p.id===product.id);
-    if(isFound){
-       isFound.qty += product.qty;
-    }else{
-        myCart.push(product);
+
+const updateCart = async (pid, value) => {
+  const data = await getCart();
+  const isFound = data.find((item) => item.id == pid);
+  if (isFound) {
+    isFound.qty += value;
+    await saveCart(data);
+    console.log("Product quantity updated sucessfully");
+  } else {
+    console.log("Product is not Found");
+  }
+};
+const addTocart = async (product) => {
+  const myCart = await getCart();
+  const isFound = myCart.find((item) => item.id === product.id);
+  if (isFound) {
+    isFound.qty += product.qty;
+  } else {
+    myCart.push(product);
+  }
+  await saveCart(myCart);
+  console.log(`Product added with id ${product.id} into cart`);
+};
+
+const ShowCart = async () => {
+  const data = await getCart();
+  console.table(data);
+  let total = data.reduce((t, item) => t + item.qty * item.price, 0);
+  // let total = 0;
+  // for (let i = 0; i < data.length; i++) {
+  //   total = total + data[i].qty * data[i].price;
+  // }
+  console.log("You have to pay bill: Rs.", total);
+};
+
+const removeFromCart = async (pid) => {
+  // const myCart = await getCart();
+  // const index = myCart.findIndex((item) => item.id === id);
+  // if (index !== -1) {
+  //   const removed = myCart.splice(index, 1);
+  //   await saveCart(myCart);
+  //   console.log(`Product with id ${id} removed from cart`);
+  // } else {
+  //   console.log(`Product with id ${id} not found in cart`);
+  // }
+  const data = await getCart();
+  const count = data.length;
+  const newData = data.filter((item) => item.id != pid);
+  const newCount = newData.length;
+
+  if (count == newCount) {
+    console.log("Pid not found");
+  } else {
+    await saveCart(newData);
+    console.log(`product with id ${pid} delete successfully`);
+  }
+};
+
+const main = async () => {
+  let choice;
+  const cin = readline.createInterface({ input: stdin, output: stdout });
+  do {
+    console.log("Welcome to Flipkart 🛒");
+    console.log("1.................Show Cart");
+    console.log("2.................Add to Product");
+    console.log("3.................Remove Product");
+    console.log("4.................Update Quantity");
+    console.log("5.................Checkout");
+    choice = await cin.question("Enter your choice: ");
+    switch (Number(choice)) {
+      case 1:
+        await ShowCart();
+        break;
+      case 2:
+        let data = await cin.question("enter id, name,price,qty:");
+        const [id, name, price, qty] = data
+          .split(",")
+          .map((item) => item.trim());
+        const product = {
+          id: Number(id),
+          name,
+          price: Number(price),
+          qty: Number(qty),
+        };
+        await addTocart(product);
+
+        break;
+      case 3:
+        let pid = await cin.question("Enter product id to remove: ");
+        await removeFromCart(Number(pid));
+
+        break;
+      case 4:
+        let pid2 = await cin.question("Enter product id to update:");
+        let value = await cin.question("+1 increaee,-1 decrease");
+        await updateCart(Number(pid), Number(value));
+
+        break;
+      case 5:
+        console.log("See you later");
+        break;
+      default:
+        console.log("Invalid choice! try again😒");
+        break;
     }
-    await saveCart(myCart);
-    console.log(`Product added/updated with id ${product.id} and quantity ${product.qty}`);
-   
-};
-const main = async ()=> {
-    let choice; 
-    const cin = readline.createInterface({input:stdin,output:stdout});
-    do{
-    console.log("welcome to crate&care🍂");
-    console.log("1...... show cart😁");
-    console.log("2...... add product😊");
-    console.log("3...... remove product😏");
-    console.log("4...... update product quantity🙂");
-    console.log("5...... exit🙂‍↔️");
-    choice = await cin.question("enter your choice: ");
-    switch(choice){
-        case "1":
-            console.log("show product");
-            break;
-        case "2":
-           let data = await cin.question("Enter id,name,price,qty: ");
-            const [id, name, price, qty] = data.split(",").map((item) => item.trim());
-            const product = { id:Number(id), name, price: Number(price), qty: Number(qty) 
-            };
-            await addToCart(product);
-            break;
-        case "3":
-            console.log("remove product");
-            break;
-        case "4":
-            console.log("update product quantity");
-            break;
-        case "5":
-            console.log("see you later");
-            break;
-        default:
-            console.log("invalid choice try again "); 
-    }
-    } while(choice!=5);
-    cin.close();
+  } while (choice != 5);
+  cin.close();
 };
 
 main();
