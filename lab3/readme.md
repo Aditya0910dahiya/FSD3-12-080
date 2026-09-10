@@ -6,3 +6,11 @@
 3. Built REST APIs
 4. Non-Blocking I/O
 5. Foundation of Express.js
+# http status codes
+- 200 -> ok
+- 201 -> created
+- 400 -> Bad request
+- 401 -> Unauthorized
+- 403 -> forbidden
+- 404 -> Not found
+- 500 ->Internal Server Error
