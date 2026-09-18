@@ -4,7 +4,23 @@ const server = http.createServer((req, res) => {
   if (req.url === "/api/users" && req.method === "GET") {
     res.end(JSON.stringify({ msg: "Show users" }));
   } else if (req.url === "/api/users" && req.method === "POST") {
-    res.end(JSON.stringify({ msg: "Add user" }));
+    let body = "";
+
+    req.on("data", (chunk) => {
+      body += chunk;
+    });
+
+    req.on("end", () => {
+      const user = JSON.parse(body);
+      console.log(user);
+
+      res.end(
+        JSON.stringify({
+          msg: "Add user",
+          user: user,
+        }),
+      );
+    });
   } else if (req.url === "/api/users/1" && req.method === "GET") {
     res.end(JSON.stringify({ msg: "Show user with id 1" }));
   } else if (req.url === "/api/users/1" && req.method === "PUT") {
