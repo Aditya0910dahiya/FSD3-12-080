@@ -1,8 +1,20 @@
 import http from "http";
+import {
+  getAllUsers,
+  getUsersById,
+  updateUser,
+  deleteUser,
+  addUser,
+} from "./users.js";
 
 const server = http.createServer((req, res) => {
+  res.setHeader("Content-Type", "application/json");
+
+  // GET all users
   if (req.url === "/api/users" && req.method === "GET") {
-    res.end(JSON.stringify({ msg: "Show users" }));
+    res.end(JSON.stringify(getAllUsers()));
+
+    // POST create user
   } else if (req.url === "/api/users" && req.method === "POST") {
     let body = "";
 
@@ -12,29 +24,75 @@ const server = http.createServer((req, res) => {
 
     req.on("end", () => {
       const user = JSON.parse(body);
-      console.log(user);
+      const userCreated = addUser(user);
 
       res.end(
         JSON.stringify({
-          msg: "Add user",
-          user: user,
+          msg: "user added",
+          userCreated,
         }),
       );
     });
-  } else if (req.url === "/api/users/1" && req.method === "GET") {
-    res.end(JSON.stringify({ msg: "Show user with id 1" }));
-  } else if (req.url === "/api/users/1" && req.method === "PUT") {
-    res.end(JSON.stringify({ msg: "Replace user 1" }));
-  } else if (req.url === "/api/users/1" && req.method === "DELETE") {
-    res.end(JSON.stringify({ msg: "Delete user 1" }));
-  } else if (req.url === "/api/users/1" && req.method === "PATCH") {
-    res.end(JSON.stringify({ msg: "Partially update user 1" }));
+
+    // Routes with ID
+  } else if (req.url.startsWith("/api/users/")) {
+    const pid = Number(req.url.split("/")[3]);
+
+    // GET user by ID
+    if (req.method === "GET") {
+      const user = getUsersById(pid);
+
+      if (!user) {
+        res.statusCode = 404;
+        return res.end(JSON.stringify({ msg: "User not found" }));
+      }
+
+      res.end(JSON.stringify(user));
+
+      // PUT update user
+    } else if (req.method === "PUT") {
+      let body = "";
+
+      req.on("data", (chunk) => {
+        body += chunk;
+      });
+
+      req.on("end", () => {
+        const updateData = JSON.parse(body);
+        const updatedUser = updateUser(pid, updateData);
+
+        if (!updatedUser) {
+          res.statusCode = 404;
+          return res.end(JSON.stringify({ msg: "User not found" }));
+        }
+
+        res.end(
+          JSON.stringify({
+            msg: "user updated",
+            updatedUser,
+          }),
+        );
+      });
+
+      // DELETE user
+    } else if (req.method === "DELETE") {
+      const deleted = deleteUser(pid);
+
+      if (!deleted) {
+        res.statusCode = 404;
+        return res.end(JSON.stringify({ msg: "User not found" }));
+      }
+
+      res.end(JSON.stringify({ msg: "user deleted" }));
+    }
+
+    // 404
   } else {
     res.statusCode = 404;
-    res.end();
+    res.end(JSON.stringify({ msg: "Route not found" }));
   }
 });
 
 server.listen(5555, () => {
-  console.log("Server prg7 running ...");
+  console.log("prg7 is running on port 5555");
 });
