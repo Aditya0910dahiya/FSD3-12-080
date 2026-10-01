@@ -10,14 +10,14 @@ const dirname = path.dirname(filename);
 app.get("/", (req, res) => {
   res.sendFile(path.join(dirname, "pages", "product.html"));
 });
+
 app.get("/contact", (req, res) => {
   res.sendFile(path.join(dirname, "pages", "contact.html"));
 });
-app.get("/about", (req, res) => {
-  res.sendFile(path.join(dirname, "pages", "about.html"));
-});
-app.get("/products", (req, res) => {
-  res.sendFile(path.join(dirname, "pages", "products.html"));
+
+// this route must be last 👇
+app.use((req, res) => {
+  res.status(404).send("<h1>404 Not Found</h1>");
 });
 
 app.listen(4444, () => console.log("prg2 is running at 4444"));
