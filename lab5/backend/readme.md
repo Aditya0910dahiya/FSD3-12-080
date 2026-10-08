@@ -42,3 +42,8 @@ app.listen(4444, () => {
   console.log("prg1 is running on port 4444");
 });
 ```
+
+##  STATIC
+1. In express we can add any static html pages with the help of express.static
+2. express support middle where 
+when we have to exixute some function before server execution then we use middle pair app.use always applied to insert any middle pair
